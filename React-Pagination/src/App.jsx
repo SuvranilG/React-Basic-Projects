@@ -5,21 +5,23 @@ import './App.css'
 
 function App() {
   const [products,setProducts]=useState([]);
+  const[productsLength,setProductsLength]=useState(0);
+  const [page,setPage] = useState(1);
+  const productsPerPage =9;
   const fetchProducts=async ()=>{
-  const res= await fetch('https://dummyjson.com/products');
-  const data= await res.json();
-  setProducts(data.products);
-  console.log(data.products);
-  }
-  const [page,setPage] = useState(5);
-  const numOfProductsInPage =6;
-  
+    const res= await fetch(`https://dummyjson.com/products?limit=${productsPerPage}&skip=${page*productsPerPage-productsPerPage}`);
+    const data= await res.json();
+    setProducts(data.products);
+    setProductsLength(data.total)
+    console.log(data);
+    console.log(data.total);
+    }
   useEffect(()=>{
     fetchProducts();
-  },[])
+  },[page])
   
   const handlePageClick=(selectedPage)=>{
-    if(selectedPage >0 && selectedPage<=products.length/numOfProductsInPage)
+    if(selectedPage >0 && selectedPage<=productsLength/productsPerPage)
     setPage(selectedPage);
   }
 
@@ -28,7 +30,7 @@ function App() {
 
     <div className='products'>
 
-      {products.slice(page*numOfProductsInPage-numOfProductsInPage,page*numOfProductsInPage).map(product =>{
+      {products.map(product =>{
         return( 
         <div className='products__single'key={product.title}>
           <img src={product.thumbnail} ></img>
@@ -39,13 +41,13 @@ function App() {
       )}
 
     </div>
-    {products.length>0&& <div className="pagination">
+    {productsLength>0&& <div className="pagination">
 
     <span
     onClick={()=>handlePageClick(page-1)}
     className={page>1?"":"pagination__disabled"}
     >◀️</span>
-    {[...Array(products.length/numOfProductsInPage)].map((_,i)=>
+    {[...Array(Math.floor(productsLength/productsPerPage))].map((_,i)=>
     <span 
       key={i} 
       onClick={()=>handlePageClick(i+1)}
@@ -54,7 +56,7 @@ function App() {
     )}
     <span
     onClick={()=>handlePageClick(page+1)}
-    className={page<products.length/numOfProductsInPage?"":"pagination__disabled"}
+    className={page<productsLength/productsPerPage?"":"pagination__disabled"}
     >▶️</span>
     </div>
     }
